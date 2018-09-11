@@ -1,0 +1,13 @@
+{
+  "name": "ymd",
+  "description": "Yet another markup language, designed for blogging.",
+  "version": "0.1.0",
+  "dependencies": {
+  },
+  "main": "ymd.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ylxdzsw/ymd.js.git"
+  }
+}
