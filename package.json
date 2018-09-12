@@ -1,10 +1,13 @@
 {
-  "name": "ymd",
+  "name": "jstransformer-ymd",
   "description": "Yet another markup language, designed for blogging.",
   "version": "0.1.0",
   "dependencies": {
   },
   "main": "ymd.js",
+  "engines": {
+    "node": ">=7.6.0"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
