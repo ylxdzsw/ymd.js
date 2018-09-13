@@ -21,7 +21,7 @@ function scan_definitions(str) {
     const defs = []
     str += '\n\n'
 
-    const reg = /^\[(.*)\]([:=])([\s\S]*?\n)(?=\n|^\[.*\][:=])/gm
+    const reg = /^\[(.*?)\]([:=])([\s\S]*?\n)(?=\n|^\[.*?\][:=])/gm
 
     while (true) {
         const token = reg.exec(str)
@@ -41,12 +41,13 @@ function scan_definitions(str) {
 
 function interpret(state, env, name, defs) {
     function interp_refer(def) {
-        state.i += name.length + 2
         state.result += interpret_all(def.content, append_empty(defs, name))
     }
 
     function interp_script(def) {
-        vm.runInContext(def.content, env)
+        env.state = state
+        env.interpret = str => interpret_all(str, env, defs)
+        state.result += vm.runInContext(def.content, env)
     }
 
     const def = defs.find(x=>x.name == name)
@@ -60,25 +61,47 @@ function interpret(state, env, name, defs) {
 }
 
 function interpret_all(str, env, defs) {
-    const reg = /\[(.*)\]/
+    const reg = /\[(.*?)\]/g
 
     const state = { str, i: 0, result: '' }
     while (true) {
         const token = next_match(state.str, reg, state.i)
         if (token) {
             state.result += str.substring(state.i, token.index)
-            state.i = token.index
-            interpret(state, env, token[1], defs.filter(x => x.position > i))
+            state.i = reg.lastIndex
+            interpret(state, env, token[1], defs.filter(x => x.position > state.i))
         } else {
             return state.result + str.substring(state.i)
         }
     }
 }
 
-module.exports.render = (str, options, locals) => {
+const helpers = {
+    capture_block() {
+        const i = next_match(this.state.str, /^(\[(.*?)\]([:=])|\n)/gm, this.state.i).index
+        const content = this.state.str.substring(this.state.i, i)
+        this.state.i = i
+        return content
+    },
+    capture_until(delimiter) {
+        const i = this.state.str.indexOf(delimiter, this.state.i)
+        if (i == -1) throw new RangeError("string ends without seeing delimiter " + delimiter)
+        const content = this.state.str.substring(this.state.i, i)
+        this.state.i = i + delimiter.length
+        return content
+    },
+    capture_line() {
+        return this.capture_until('\n')
+    }
+}
+
+module.exports.render = (str, options={}, locals={}) => {
     const env = vm.createContext(locals)
+    for (const k in helpers) {
+        env[k] = helpers[k].bind(env)
+    }
     const { remaining, defs } = scan_definitions(str)
-    interpret_all(remaining, env, defs)
+    return interpret_all(remaining, env, defs)
 }
 
 /*
@@ -90,4 +113,5 @@ TODO:
 2. handle empty brackets []
     - it refers to the current macro name when inside a definition
 3. currently references can be recursive, should we track them and throw?
+4. add offset option so macros refers to the correct definitions inside "capture_until"
 */
