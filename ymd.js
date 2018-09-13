@@ -92,6 +92,9 @@ const helpers = {
     },
     capture_line() {
         return this.capture_until('\n')
+    },
+    peek() {
+        return this.state.str[this.state.i]
     }
 }
 
