@@ -98,7 +98,11 @@ const helpers = {
     }
 }
 
-module.exports.render = (str, options={}, locals={}) => {
+exports.name = 'ymd'
+exports.inputFormats = ['ymd']
+exports.outputFormat = 'html'
+
+exports.render = (str, options={}, locals={}) => {
     const env = vm.createContext(locals)
     for (const k in helpers) {
         env[k] = helpers[k].bind(env)
