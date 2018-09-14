@@ -86,20 +86,15 @@ function paragraph(str, state) {
         }
 
         state.result += str.substring(i, token.index)
-
-        if (token[1] == '  ') {
-            if (!state.inparagraph) {
-                state.inparagraph = true
-                state.result += '<p>'
-            }
-        } else {
-            if (state.inparagraph) {
-                state.inparagraph = false
-                state.result += '</p>'
-            }
-        }
-
         i = reg.lastIndex
+
+        if (token[1] == '  ' && !state.inparagraph) {
+            state.inparagraph = true
+            state.result += '<p>'
+        } else if (token[1] == '\n' && state.inparagraph) {
+            state.inparagraph = false
+            state.result += '</p>'
+        }
     }
 }
 
