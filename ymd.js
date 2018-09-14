@@ -128,10 +128,9 @@ exports.inputFormats = ['ymd']
 exports.outputFormat = 'html'
 
 exports.render = (str, options={}, locals={}) => {
-    const env = vm.createContext(locals)
-    for (const k in helpers) {
-        env[k] = helpers[k].bind(env)
-    }
+    const env = vm.createContext({...helpers, ...locals})
+    for (const k in env) if (typeof(env[k]) == 'function')
+        env[k] = env[k].bind(env)
     const { remaining, defs } = scan_definitions(str)
     return interpret_all(remaining, env, defs)
 }
