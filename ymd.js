@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 'use strict'
 
 const vm = require("vm")
@@ -27,7 +25,7 @@ function scan_definitions(str) {
         const token = reg.exec(str)
         if (!token) return { remaining: str, defs }
 
-        str = replace_substr(str, token.index, reg.lastIndex)
+        str = replace_substr(str, token.index, reg.lastIndex, ()=>'\n')
         reg.lastIndex = token.index
 
         defs.push({
@@ -47,7 +45,7 @@ function interpret(state, env, name, defs) {
     function interp_script(def) {
         env.state = state
         env.interpret = str => interpret_all(str, env, defs)
-        state.result += vm.runInContext(def.content, env)
+        state.result += vm.runInContext('{' + def.content + '}', env)
     }
 
     const def = defs.find(x=>x.name == name)
@@ -63,11 +61,11 @@ function interpret(state, env, name, defs) {
 function interpret_all(str, env, defs) {
     const reg = /\[(.*?)\]/g
 
-    const state = { str, i: 0, result: '' }
+    const state = { str, i: 0, result: '', inparagraph: false }
     while (true) {
         const token = next_match(state.str, reg, state.i)
         if (token) {
-            state.result += str.substring(state.i, token.index)
+            paragraph(str.substring(state.i, token.index), state)
             state.i = reg.lastIndex
             interpret(state, env, token[1], defs.filter(x => x.position > state.i))
         } else {
@@ -76,9 +74,38 @@ function interpret_all(str, env, defs) {
     }
 }
 
+function paragraph(str, state) {
+    const reg = /^(\n|  )/gm
+
+    let i = 0
+    while (i < str.length) {
+        const token = next_match(str, reg, i)
+        if (!token) {
+            state.result += str.substring(i)
+            return state
+        }
+
+        state.result += str.substring(i, token.index)
+
+        if (token[1] == '  ') {
+            if (!state.inparagraph) {
+                state.inparagraph = true
+                state.result += '<p>'
+            }
+        } else {
+            if (state.inparagraph) {
+                state.inparagraph = false
+                state.result += '</p>'
+            }
+        }
+
+        i = reg.lastIndex
+    }
+}
+
 const helpers = {
     capture_block() {
-        const i = next_match(this.state.str, /^(\[(.*?)\]([:=])|\n)/gm, this.state.i).index
+        const i = next_match(this.state.str, /^\n)/gm, this.state.i).index
         const content = this.state.str.substring(this.state.i, i)
         this.state.i = i
         return content
@@ -95,6 +122,9 @@ const helpers = {
     },
     peek() {
         return this.state.str[this.state.i]
+    },
+    skip(n=1) {
+        this.state.i += n
     }
 }
 
@@ -117,8 +147,7 @@ TODO:
     - lists can be nested, possibly using indents
     - use - to start an unordered list and * to start an ordered list
     - lists should terminate block like defs
-2. handle empty brackets []
-    - it refers to the current macro name when inside a definition
-3. currently references can be recursive, should we track them and throw?
-4. add offset option so macros refers to the correct definitions inside "capture_until"
+2. currently references can be recursive, should we track them and throw?
+3. add offset option so macros refers to the correct definitions inside "capture_until"
+4. capture_indent, which may also be used to implement the lists
 */
