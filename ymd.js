@@ -106,11 +106,16 @@ const helpers = {
         return content
     },
 
-    capture_until(delimiter) {
-        const i = this.state.str.indexOf(delimiter, this.state.i)
-        if (i == -1) throw new RangeError("string ends without seeing delimiter " + delimiter)
+    capture_until(delimiter, keep=true, eof=false) {
+        let i = this.state.str.indexOf(delimiter, this.state.i)
+        if (i == -1)
+            if (eof)
+                i = undefined
+            else
+                throw new RangeError("string ends without seeing delimiter " + delimiter)
         const content = this.state.str.substring(this.state.i, i)
-        this.state.i = i + delimiter.length
+        if (!keep)
+            this.state.i = i + delimiter.length
         return content
     },
 
