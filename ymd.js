@@ -100,7 +100,7 @@ function paragraph(str, state) {
 
 const helpers = {
     capture_block() {
-        const i = next_match(this.state.str, /^\n)/gm, this.state.i).index
+        const i = next_match(this.state.str, /^\n/gm, this.state.i).index
         const content = this.state.str.substring(this.state.i, i)
         this.state.i = i
         return content

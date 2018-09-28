@@ -1,7 +1,7 @@
 {
   "name": "jstransformer-ymd",
   "description": "Yet another markup language, designed for blogging.",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "main": "ymd.js",
   "bin": {
     "ymd": "./bin.js"
