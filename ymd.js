@@ -105,6 +105,7 @@ const helpers = {
         this.state.i = i
         return content
     },
+
     capture_until(delimiter) {
         const i = this.state.str.indexOf(delimiter, this.state.i)
         if (i == -1) throw new RangeError("string ends without seeing delimiter " + delimiter)
@@ -112,12 +113,15 @@ const helpers = {
         this.state.i = i + delimiter.length
         return content
     },
+
     capture_line() {
         return this.capture_until('\n')
     },
+
     peek() {
         return this.state.str[this.state.i]
     },
+
     skip(n=1) {
         this.state.i += n
     }
