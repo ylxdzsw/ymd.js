@@ -69,7 +69,8 @@ function interpret_all(str, env, defs) {
             state.i = reg.lastIndex
             interpret(state, env, token[1], defs.filter(x => x.position > state.i))
         } else {
-            return state.result + str.substring(state.i)
+            paragraph(str.substring(state.i), state)
+            return state.result
         }
     }
 }
@@ -80,6 +81,7 @@ function paragraph(str, state) {
     let i = 0
     while (i < str.length) {
         const token = next_match(str, reg, i)
+
         if (!token) {
             state.result += str.substring(i)
             return state
@@ -106,16 +108,15 @@ const helpers = {
         return content
     },
 
-    capture_until(delimiter, keep=true, eof=false) {
+    capture_until(delimiter, keep=false, eof=false) {
         let i = this.state.str.indexOf(delimiter, this.state.i)
         if (i == -1)
             if (eof)
-                i = undefined
+                i = this.state.str.length
             else
                 throw new RangeError("string ends without seeing delimiter " + delimiter)
         const content = this.state.str.substring(this.state.i, i)
-        if (!keep)
-            this.state.i = i + delimiter.length
+        this.state.i = i + (keep ? 0 : delimiter.length)
         return content
     },
 
@@ -153,4 +154,7 @@ TODO:
 2. currently references can be recursive, should we track them and throw?
 3. add offset option so macros refers to the correct definitions inside "capture_until"
 4. capture_indent, which may also be used to implement the lists
+5. cleanup the spaces:
+    - block parsing ends with eof
+    - trim refer by default
 */
