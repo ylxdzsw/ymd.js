@@ -121,7 +121,7 @@ const helpers = {
     },
 
     capture_line() {
-        return this.capture_until('\n')
+        return this.capture_until('\n', false, true)
     },
 
     peek() {
@@ -157,4 +157,5 @@ TODO:
 5. cleanup the spaces:
     - block parsing ends with eof
     - trim refer by default
+6. prefix matching [pref...]
 */
