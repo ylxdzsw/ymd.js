@@ -39,7 +39,7 @@ function scan_definitions(str) {
 
 function interpret(state, env, name, defs) {
     function interp_refer(def) {
-        state.result += interpret_all(def.content, append_empty(defs, name))
+        state.result += interpret_all(def.content, env, append_empty(defs, name))
     }
 
     function interp_script(def) {
